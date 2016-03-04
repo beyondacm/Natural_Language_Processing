@@ -3,7 +3,8 @@ import os
 import re
 import pprint
 
-my_first_pat = '(\w+)@(\w+).edu'
+my_first_pat = '(\w+\.\w+|\w+)[ ]*@[ ]*(\w+\.\w+|\w+).[e|E][d|D][u|U]'
+email_pattern = re.compile(my_first_pat)
 
 """
 TODO
@@ -31,10 +32,18 @@ def process_file(name, f):
     # sys.stderr.write('[process_file]\tprocessing file: %s\n' % (path))
     res = []
     for line in f:
+        line.replace(' at ', '@')
+        line.replace(' dot ', '.')
         matches = re.findall(my_first_pat,line)
+        #matches = re.match(my_first_pat, line)
+        #print matches
+        #matches = email_pattern.findall(line) 
+        #print matches
         for m in matches:
+            print m  #m is a tuple 
             email = '%s@%s.edu' % m
             res.append((name,'e',email))
+    #print res
     return res
 
 """
@@ -44,13 +53,17 @@ its interface as it will be called directly by the submit script
 def process_dir(data_path):
     # get candidates
     guess_list = []
+    # print os.listdir(data_path)
     for fname in os.listdir(data_path):
         if fname[0] == '.':
             continue
         path = os.path.join(data_path,fname)
+        #print path
         f = open(path,'r')
         f_guesses = process_file(fname, f)
+        #print f_guesses
         guess_list.extend(f_guesses)
+    # print guess_list
     return guess_list
 
 """
