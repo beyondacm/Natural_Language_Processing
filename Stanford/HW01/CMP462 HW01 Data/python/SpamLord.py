@@ -3,8 +3,8 @@ import os
 import re
 import pprint
 
-#my_first_pat = '(\w+\.\w+|\w+)[ ]*(@| at | AT |&#x40;)[ ]*(\w+\.\w+|\w+).(edu|com)'
-email_pattern = '(\w+\.\w+|\w+)[ ]*(@| at | AT |&#x40;)[ ]*(\w+|\w+\.\w+).(edu|com)'
+#my_first_pat = '(\w+\.\w+|\w+)[ ]*(@| at | AT |&#x40;)[ ]*(\w+\.\w+|\w+).(edu|com|EDU)'
+email_pattern = '(\w+\.\w+|\w+)[ ]*(@| at | AT |&#x40;)[ ]*(\w+|\w+\.\w+).(edu|com|EDU)'
 ep = re.compile(email_pattern)
 phone_pattern = '(\d{3})(\D){1,3}(\d{3})(-| )(\d{4})'
 pp = re.compile(phone_pattern)
