@@ -6,6 +6,9 @@ import pprint
 #my_first_pat = '(\w+\.\w+|\w+)[ ]*(@| at | AT |&#x40;)[ ]*(\w+\.\w+|\w+).(edu|com)'
 email_pattern = '(\w+\.\w+|\w+)[ ]*(@| at | AT |&#x40;)[ ]*(\w+|\w+\.\w+).(edu|com)'
 ep = re.compile(email_pattern)
+phone_pattern = '(\d{3})(\D){1,3}(\d{3})(-| )(\d{4})'
+pp = re.compile(phone_pattern)
+
 
 """
 TODO
@@ -38,16 +41,29 @@ def process_file(name, f):
         line = line.replace(' dt ', '.')
         line = line.replace(';', '.')
         #matches = re.findall(my_first_pat,line)
-        matches = ep.search(line)
-        if matches :
+        email_matches = ep.search(line)
+        phone_matches = pp.findall(line)
+        #print phone_matches
+        if email_matches :
             #print matches.group(1), matches.group(3)
             #for m in matches:
-            group1 = matches.group(1)
-            group3 = matches.group(3)
-            group4 = matches.group(4)
-            email = '%s@%s.%s' % ( group1 , group3, group4 )
+            email_group1 = email_matches.group(1)
+            email_group3 = email_matches.group(3)
+            email_group4 = email_matches.group(4)
+            email = '%s@%s.%s' % ( email_group1 , email_group3, email_group4 )
             #print name , email
             res.append((name,'e',email))
+        if phone_matches : 
+            #print phone_matches
+            for m in phone_matches :
+                #print m[1], m[3], m[4]
+                phone = '%s-%s-%s' %(m[0], m[2], m[4])
+                print name, phone
+                res.append((name, 'p', phone))
+            
+            #phone = '%s-%s-%s' %(phone_group2, phone_group4, phone_group5)
+            #res.append((name, 'p', phone))
+
         #print matches
         #matches = email_pattern.findall(line) 
         #print matches
