@@ -3,8 +3,9 @@ import os
 import re
 import pprint
 
-my_first_pat = '(\w+\.\w+|\w+)[ ]*@[ ]*(\w+\.\w+|\w+).[e|E][d|D][u|U]'
-email_pattern = re.compile(my_first_pat)
+#my_first_pat = '(\w+\.\w+|\w+)[ ]*(@| at | AT |&#x40;)[ ]*(\w+\.\w+|\w+).(edu|com)'
+email_pattern = '(\w+\.\w+|\w+)[ ]*(@| at | AT |&#x40;)[ ]*(\w+|\w+\.\w+).(edu|com)'
+ep = re.compile(email_pattern)
 
 """
 TODO
@@ -32,17 +33,28 @@ def process_file(name, f):
     # sys.stderr.write('[process_file]\tprocessing file: %s\n' % (path))
     res = []
     for line in f:
-        line.replace(' at ', '@')
-        line.replace(' dot ', '.')
-        matches = re.findall(my_first_pat,line)
-        #matches = re.match(my_first_pat, line)
+        #line.replace(' at ', '@')
+        line = line.replace(' dot ', '.')
+        line = line.replace(' dt ', '.')
+        line = line.replace(';', '.')
+        #matches = re.findall(my_first_pat,line)
+        matches = ep.search(line)
+        if matches :
+            #print matches.group(1), matches.group(3)
+            #for m in matches:
+            group1 = matches.group(1)
+            group3 = matches.group(3)
+            group4 = matches.group(4)
+            email = '%s@%s.%s' % ( group1 , group3, group4 )
+            #print name , email
+            res.append((name,'e',email))
         #print matches
         #matches = email_pattern.findall(line) 
         #print matches
-        for m in matches:
-            print m  #m is a tuple 
-            email = '%s@%s.edu' % m
-            res.append((name,'e',email))
+        #for m in matches:
+            #print m  #m is a tuple 
+            #email = '%s@%s.edu' % m
+            #res.append((name,'e',email))
     #print res
     return res
 
