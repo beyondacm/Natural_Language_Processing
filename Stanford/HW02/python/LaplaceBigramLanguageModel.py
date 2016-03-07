@@ -16,8 +16,12 @@ class LaplaceBigramLanguageModel:
     # TODO your code here
     for sentence in corpus.corpus:
         datums = sentence.data
+        #print str(datums) 
         for index in range(len(datums)) :
             token_i = datums[index].word
+            # print index
+            # print 'datums_i :' + str(datums[index])
+            # print 'token_i :' + token_i
             # count C(W_i_1)
             self.uniGramCounts[token_i] += 1
             if index > 0:
@@ -25,7 +29,9 @@ class LaplaceBigramLanguageModel:
                 token_i_1 = datums[index - 1].word
                 # bi_key is the key for the biGramCounts dict
                 bi_key = token_i_1 + "," + token_i
+                #print bi_key
                 self.biGramCounts[bi_key] += 1
+    print self.biGramCounts
     pass
 
   def score(self, sentence):
