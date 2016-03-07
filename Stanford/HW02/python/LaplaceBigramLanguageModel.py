@@ -1,8 +1,12 @@
+import math, collections
+
 class LaplaceBigramLanguageModel:
 
   def __init__(self, corpus):
     """Initialize your data structures in the constructor."""
     # TODO your code here
+    self.biGramCounts = collections.defaultdict( lambda : 0)
+    self.uniGramCounts = collections.defaultdict( lambda : 0)
     self.train(corpus)
 
   def train(self, corpus):
@@ -10,6 +14,18 @@ class LaplaceBigramLanguageModel:
         Compute any counts or other corpus statistics in this function.
     """  
     # TODO your code here
+    for sentence in corpus.corpus:
+        datums = sentence.data
+        for index in range(len(datums)) :
+            token_i = datums[index].word
+            # count C(W_i_1)
+            self.uniGramCounts[token_i] += 1
+            if index > 0:
+                # count C(W_i_1, W_i)
+                token_i_1 = datums[index - 1].word
+                # bi_key is the key for the biGramCounts dict
+                bi_key = token_i_1 + "," + token_i
+                self.biGramCounts[bi_key] += 1
     pass
 
   def score(self, sentence):
@@ -17,4 +33,17 @@ class LaplaceBigramLanguageModel:
         sentence using your language model. Use whatever data you computed in train() here.
     """
     # TODO your code here
-    return 0.0
+    score = 0
+    v = 0
+    # print sentence
+    for i in range(len(sentence)) :
+        if i > 0:
+            bi_key = sentence[i-1] + ',' + sentence[i]
+            count_bigram = self.biGramCounts[bi_key]
+            count_unigram = self.uniGramCounts[sentence[ i-1 ]]
+            
+            score += math.log(count_bigram + 1)
+            score -= math.log(count_unigram + len(self.biGramCounts))
+    
+    return score
+    #return 0.0
