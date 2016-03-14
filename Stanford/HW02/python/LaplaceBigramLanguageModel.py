@@ -31,7 +31,7 @@ class LaplaceBigramLanguageModel:
                 bi_key = token_i_1 + "," + token_i
                 #print bi_key
                 self.biGramCounts[bi_key] += 1
-    print self.biGramCounts
+    #print self.biGramCounts
     pass
 
   def score(self, sentence):
