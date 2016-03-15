@@ -6,6 +6,7 @@ class CustomLanguageModel:
     # TODO your code here
     self.biGramCounts = collections.defaultdict(lambda: 0)
     self.uniGramCounts = collections.defaultdict(lambda: 0)
+    self.triGramCounts = collections.defaultdict(lambda: 0)
     self.afterWordCounts = collections.defaultdict(lambda: 0)
     self.beforWordCounts = collections.defaultdict(lambda: 0)
     self.total = 0
@@ -26,6 +27,10 @@ class CustomLanguageModel:
                 token_i_1 = datums[i - 1].word
                 bi_key = token_i_1 + "," + token_i
                 self.biGramCounts[bi_key] += 1
+                if i>= 2:
+                    token_i_2 = datums[i - 2].word
+                    tri_key = token_i_2 + ',' + token_i_1 + ',' + token_i
+                    self.triGramCounts[tri_key] += 1
     
     for token in self.uniGramCounts.keys():
         self.afterWordCounts[token] = self.countAfterKeyPartInDict(self.biGramCounts, token)
@@ -37,6 +42,37 @@ class CustomLanguageModel:
     """
     # TODO your code here
     score = 0
+    '''
+    for i in range( len(sentence) ):
+        if i >= 2:
+            # search for count_trigram through tri_key
+            tri_key = sentence[i-2] + ',' + sentence[i-1] + ',' + sentence[i] 
+            count_trigram = self.triGramCounts[tri_key] 
+            # search for count_bigram through bi_key
+            bi_key = sentence[i-1] + ',' + sentence[i]
+            count_bigram = self.biGramCounts[bi_key]
+            # search for uni_gram through token
+            # count_unigram = self.uniGramCounts[ sentence[i-2] ] 
+
+            if count_trigram > 0 :
+                # re count the bigram 
+                bi_key = sentence[i-2] + ',' + sentence[i-1]
+                count_bigram = self.biGramCounts[bi_key]
+                score += math.log(count_trigram)
+                score -= math.log(count_bigram)
+            elif count_bigram > 0 : # count_trigram = 0 & count_bigram > 0
+                # re count the unigram 
+                count_unigram = self.uniGramCounts[ sentence[i-1] ] 
+                score += math.log(count_bigram)
+                score -= math.log(count_unigram)
+                score += math.log(0.4)
+            else :
+                # re count the unigram
+                count_unigram = self.uniGramCounts[ sentence[i] ]
+                score += math.log(count_unigram + 1)
+                score -= math.log(self.total * 2)
+                score += math.log(0.16)
+    '''
     d = 0.75
     for i in range(len(sentence)):
         if i >= 1:
@@ -63,7 +99,8 @@ class CustomLanguageModel:
                 score += math.log(count_unigram + 1)
                 self.total += 1
                 score -= math.log(self.total)
-                score += math.log(0.4)          
+                score += math.log(0.4)
+
     return score
 
   def countAfterKeyPartInDict(self, dict, key_first_part):

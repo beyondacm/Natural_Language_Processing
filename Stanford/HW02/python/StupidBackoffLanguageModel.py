@@ -46,7 +46,7 @@ class StupidBackoffLanguageModel:
             if count_bigram > 0:
                 score += math.log(count_bigram)
                 score -= math.log(count_unigram) # score = Count(w_i_1, w_i)/Count(w_i)  
-            else : # count_bigram = 0 need to back off to the unigram model
+            else : # count_bigram = 0 need to back off to the unigram model use the add-one smoothing
                 count_unigram = self.uniGramCounts[sentence[i]]
                 score += math.log(count_unigram + 1)
                 score -= math.log(self.total * 2)
