@@ -16,6 +16,8 @@ import sys
 import getopt
 import os
 import math
+import collections
+import string
 
 class NaiveBayes:
   class TrainSplit:
@@ -39,6 +41,17 @@ class NaiveBayes:
     self.FILTER_STOP_WORDS = False
     self.stopList = set(self.readFile('../data/english.stop'))
     self.numFolds = 10
+    
+    # count the number of each type of classes
+    self.classes = collections.defaultdict(lambda: 0)
+    # count( w_i, c_j )
+    self.nbLikehood = collections.defaultdict(lambda: 0)
+    # count the total number of all classes
+    self.totalClassNum = 0
+    # count the vacabulary of all words in all the classes
+    self.vocabulary = collections.defaultdict(lambda: 0)
+    # count( w, c_j ) the total number of words in each class
+    self.total_count_per_class = collections.defaultdict(lambda: 0)
 
   #############################################################################
   # TODO TODO TODO TODO TODO
@@ -47,7 +60,41 @@ class NaiveBayes:
     """ TODO
       'words' is a list of words to classify. Return 'pos' or 'neg' classification.
     """
-    return 'pos'
+    classType = ''
+    
+    # print self.classes['pos'], self.classes['neg']
+    # print self.classes['pos'] + self.classes['neg']
+    # print self.totalClassNum
+    # self.totalClassNum == self.classes['pos'] + self.classes['neg']
+    
+    self.totalClassNum = self.classes['pos'] + self.classes['neg']
+    prob_prior_pos = float(self.classes['pos']) / float(self.totalClassNum)
+    prob_prior_neg = float(self.classes['neg']) / float(self.totalClassNum)
+    # print prob_prior_pos
+    # print prob_prior_neg
+    prob_pos = 0
+    prob_neg = 0
+    for word in words:
+        type = 'pos'
+        count_word_class = self.nbLikehood[(word, type)]
+        count_totalword_class = self.total_count_per_class[type]
+        # Do the add-1 smoothing
+        prob_pos += math.log( (count_word_class + 1.0) / (count_totalword_class + len(self.vocabulary)) )
+        
+        type = 'neg'
+        count_word_class = self.nbLikehood[(word, type)]
+        count_totalword_class = self.total_count_per_class[type]
+        prob_neg += math.log( (count_word_class + 1.0)/(count_totalword_class + len(self.vocabulary)) )
+    
+    prob_pos += math.log(prob_prior_pos)
+    prob_neg += math.log(prob_prior_neg)
+    
+    if prob_pos - prob_neg > 0 :
+        classType = 'pos'
+    else :
+        classType = 'neg'
+
+    return classType
 
 
   def addExample(self, klass, words):
@@ -59,6 +106,14 @@ class NaiveBayes:
      * in the NaiveBayes class.
      * Returns nothing
     """
+
+    self.classes[klass] += 1
+    # self.totalClassNum += 1
+    for word in words:
+        self.vocabulary[word] += 1
+        self.nbLikehood[(word, klass)] += 1
+        self.total_count_per_class[klass] += 1
+
     pass
 
   def filterStopWords(self, words):
@@ -66,6 +121,12 @@ class NaiveBayes:
     * TODO
     * Filters stop words found in self.stopList.
     """
+    filtered = []
+    
+    for word in words :
+        if not word in self.stopList and word.strip() != '':
+            filtered.append(word)
+    
     return words
 
   # TODO TODO TODO TODO TODO
@@ -82,7 +143,9 @@ class NaiveBayes:
     for line in f:
       contents.append(line)
     f.close()
+    # transper contents from list to string then do the split
     result = self.segmentWords('\n'.join(contents))
+    # print result
     return result
 
 
@@ -98,7 +161,11 @@ class NaiveBayes:
     split = self.TrainSplit()
     posTrainFileNames = os.listdir('%s/pos/' % trainDir)
     negTrainFileNames = os.listdir('%s/neg/' % trainDir)
+    
+    print posTrainFileNames
+    
     for fileName in posTrainFileNames:
+      # print fileName
       example = self.Example()
       example.words = self.readFile('%s/pos/%s' % (trainDir, fileName))
       example.klass = 'pos'
@@ -113,6 +180,7 @@ class NaiveBayes:
   def train(self, split):
     for example in split.train:
       words = example.words
+      # Initial FILTER_STOP_WORDS = False
       if self.FILTER_STOP_WORDS:
         words =  self.filterStopWords(words)
       self.addExample(example.klass, words)
@@ -160,6 +228,7 @@ class NaiveBayes:
     """Builds the splits for training/testing"""
     trainData = []
     testData = []
+    # splits is a list
     splits = []
     trainDir = args[0]
     if len(args) == 1:
@@ -167,16 +236,21 @@ class NaiveBayes:
 
       posTrainFileNames = os.listdir('%s/pos/' % trainDir)
       negTrainFileNames = os.listdir('%s/neg/' % trainDir)
+      
+      # print posTrainFileNames
       for fold in range(0, self.numFolds):
+                
         split = self.TrainSplit()
+        
         for fileName in posTrainFileNames:
+          # print fileName
           example = self.Example()
           example.words = self.readFile('%s/pos/%s' % (trainDir, fileName))
           example.klass = 'pos'
-          if fileName[2] == str(fold):
+          if fileName[2] == str(fold):  # fileName : cv543_5045.txt fileName[2] = '5'
             split.test.append(example)
           else:
-            split.train.append(example)
+            split.train.append(example)  
         for fileName in negTrainFileNames:
           example = self.Example()
           example.words = self.readFile('%s/neg/%s' % (trainDir, fileName))
@@ -185,8 +259,11 @@ class NaiveBayes:
             split.test.append(example)
           else:
             split.train.append(example)
+        # In k-fold cross validation set : 
+        # splits includes splits[0] / splits[1] / ... / splits[10] 
         splits.append(split)
-    elif len(args) == 2:
+    
+    elif len(args) == 2:  # NO K-fold cross validation 
       split = self.TrainSplit()
       testDir = args[1]
       print '[INFO]\tTraining on data set:\t%s testing on data set:\t%s' % (trainDir, testDir)
@@ -215,7 +292,9 @@ class NaiveBayes:
         example.words = self.readFile('%s/neg/%s' % (testDir, fileName))
         example.klass = 'neg'
         split.test.append(example)
+      # No k-fold cross validation : splits only includes splits[0]
       splits.append(split)
+    
     return splits
 
 def main():
@@ -235,18 +314,24 @@ def main():
   avgAccuracy = 0.0
   fold = 0
   for split in splits:
+    # split form splits[0] - splits[9]
     classifier = NaiveBayes()
     accuracy = 0.0
     for example in split.train:
       words = example.words
       if nb.FILTER_STOP_WORDS:
         words =  classifier.filterStopWords(words)
+      # addExample is the process for Building the Model
+      # Use the Training data (Document with label klass('pos' or 'neg') and words )
+      # Train the Model on the Training data
+      # Store the data structures used for classifier in NaiveBayes class 
       classifier.addExample(example.klass, words)
 
     for example in split.test:
       words = example.words
       if nb.FILTER_STOP_WORDS:
         words =  classifier.filterStopWords(words)
+      # classify is the process for Predicting Based on the Model
       guess = classifier.classify(words)
       if example.klass == guess:
         accuracy += 1.0
@@ -255,6 +340,7 @@ def main():
     avgAccuracy += accuracy
     print '[INFO]\tFold %d Accuracy: %f' % (fold, accuracy)
     fold += 1
+  
   avgAccuracy = avgAccuracy / fold
   print '[INFO]\tAccuracy: %f' % avgAccuracy
 
