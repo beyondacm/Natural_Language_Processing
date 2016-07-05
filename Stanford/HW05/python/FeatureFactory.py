@@ -19,6 +19,7 @@ class FeatureFactory:
     only label that is visible to this method. 
     """
 
+
     def computeFeatures(self, words, previousLabel, position):
         features = []
         currentWord = words[position]
@@ -33,10 +34,96 @@ class FeatureFactory:
 	back. It occurs when the features are too sparse. Once you have
         added enough features, take out the features that you don't need. 
 	"""
+        
+        """ TODO: Add your features here """
+        # Name Entity Examples :
+        '''
+        Justin
+        R'Hanks
+        Justin Hanks
+        Hanks said
+        Justin-Hanks
+        Justin var Hanks
+        '''
+        # last char 
+        if currentWord[-1] in 'aeiou':
+            features.append('endwith_vowel')
+            features.append('endwith_vowel, prevLabel=' + previousLabel)
+        elif currentWord[-1] == 's':
+            features.append('endwith_s')
+        elif currentWord[-1] == 'r':
+            features.append('endwith_r')
 
+        # last two char 
+        if currentWord[-2:] == 'ed':
+            features.append('endwith_ed')
+        elif currentWord[-2:] == 'es':
+            features.append('endwith_es')
+        # last three char 
+        if currentWord[-3:] == 'nia':
+            features.append('endwith_nia')
+        elif currentWord[-3:] == 'ian':
+            features.append('endwith_ian')
+        elif currentWord[-3:] == 'nal':
+            features.append('endwith_nal')
+        elif currentWord[-3:] == 'ing':
+            features.append('endwith_ing')
+        elif currentWord[-3:] == 'ies':
+            features.append('endwith_ies')
+        elif currentWord[-3:] == 'day':
+            features.append('endwith_day')
+        elif currentWord[-3:] == 'ity':
+            features.append('endwith_ity')
+        elif currentWord[-3:] == 'ive':
+            features.append('endwith_ive')
+        elif currentWord[-3:] == 'ent':
+            features.append('endwith_ent')
+        elif currentWord[-3:] == 'ese':
+            features.append('endwith_ese')
+        elif currentWord[-3:] == 'ish':
+            features.append('endwith_ish')
+        # last four char 
+        if currentWord[-4:] == 'stan':
+            features.append('endwith_stan')
+        elif currentWord[-4:] == 'sion':
+            features.append('endwith_sion')
+        elif currentWord[-4:] == 'tion':
+            features.append('endwith_tion')
+        elif currentWord[-4:] == 'land':
+            features.append('endwith_land')
+        elif currentWord[-4:] == 'bury':
+            features.append('endwith_bury')
+      
+        # 
+        has_digit = False 
+        has_punctuation = False
 
-	""" TODO: Add your features here """
+        capList = []
+        for i in range( len(currentWord) ):
+            if (currentWord[i].isupper()):
+                capList.append(i)
+            if currentWord[i] in "-.,=';:?" and not has_punctuation:
+                has_puctuation = True
+            if currentWord[i].isdigit() and not has_digit:
+                has_digit = True
+        
+        if has_digit:
+            features.append('has_digit')
+        if has_punctuation :
+            features.append('has_punctuation')
 
+        if len(capList) == 0:
+            features.append('case_lowercase')
+        elif len(capList) == 1 and capList[0] == 0:
+            features.append('case_Title')
+            features.append('prevLabel=' + previousLabel + ', case_Title')
+        elif len(capList) == len(currentWord):
+            features.append('case_AllCap')
+        elif len(capList) < len(currentWord) and len(capList) > 1:
+            features.append('case_Camel')
+            features.append('prevLabel=' + previousLabel + ', case_Title')
+        
+        
         return features
 
     """ Do not modify this method """
@@ -126,10 +213,10 @@ class FeatureFactory:
                 newDatum.features = self.computeFeatures(words, previousLabel, i)
                 newDatum.previousLabel = previousLabel
                 newData.append(newDatum)
+            
             else:
                 for previousLabel in labels:
                     datum.features = self.computeFeatures(words, previousLabel, i)
-
                     newDatum = Datum(datum.word, datum.label)
                     newDatum.features = self.computeFeatures(words, previousLabel, i)
                     newDatum.previousLabel = previousLabel
